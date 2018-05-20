@@ -1,0 +1,5 @@
+sntp.c:341:1:sntp_retry	8	static
+sntp.c:400:1:sntp_recv	24	static
+sntp.c:541:1:sntp_request	24	static
+sntp.c:577:1:sntp_init	16	static
+sntp.c:598:1:sntp_stop	8	static

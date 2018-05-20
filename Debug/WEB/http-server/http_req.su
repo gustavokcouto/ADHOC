@@ -1,0 +1,6 @@
+http_req.c:69:6:http_reqb_init	16	static
+http_req.c:76:5:http_reqb_avail	0	static
+http_req.c:109:6:http_req_set_param	16	static
+http_req.c:142:6:http_reqb_push	72	static
+http_req.c:286:5:http_resp_str	24	static
+http_req.c:280:5:http_resp_len	16	static
