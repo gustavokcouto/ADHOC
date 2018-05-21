@@ -1,0 +1,6 @@
+hw_config.c:47:6:SystemClock_Config	88	static
+hw_config.c:88:6:SysTick_Init	8	static
+hw_config.c:101:6:SDIO_SD_Init	0	static
+hw_config.c:124:6:GPIO_Init	8	static
+hw_config.c:24:6:init_periph	8	static
+hw_config.c:133:10:sys_now	8	static

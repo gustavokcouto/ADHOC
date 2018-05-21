@@ -32,8 +32,8 @@
   ******************************************************************************
 */
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx.h"
-#include "stm32f1xx_hal.h"
+#include "stm32f4xx.h"
+#include "stm32f4xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
 #include "usbd_rndis.h"
@@ -59,39 +59,70 @@ void HAL_PCDEx_SetConnectionState(PCD_HandleTypeDef *hpcd, uint8_t state);
 
 void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
 {
-  if(hpcd->Instance==USB)
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(hpcd->Instance==USB_OTG_FS)
   {
-  /* USER CODE BEGIN USB_MspInit 0 */
+  /* USER CODE BEGIN USB_OTG_FS_MspInit 0 */
 
-  /* USER CODE END USB_MspInit 0 */
-    /* Peripheral clock enable */
-    __USB_CLK_ENABLE();
+  /* USER CODE END USB_OTG_FS_MspInit 0 */
 
-    /* Peripheral interrupt init*/
-    HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-  /* USER CODE BEGIN USB_MspInit 1 */
+	/**USB_OTG_FS GPIO Configuration
+	PA8     ------> USB_OTG_FS_SOF
+	PA9     ------> USB_OTG_FS_VBUS
+	PA10     ------> USB_OTG_FS_ID
+	PA11     ------> USB_OTG_FS_DM
+	PA12     ------> USB_OTG_FS_DP
+	*/
+	GPIO_InitStruct.Pin = GPIO_PIN_8|OTG_FS_ID_Pin|OTG_FS_DM_Pin|OTG_FS_DP_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /* USER CODE END USB_MspInit 1 */
+	GPIO_InitStruct.Pin = VBUS_FS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(VBUS_FS_GPIO_Port, &GPIO_InitStruct);
+
+	/* Peripheral clock enable */
+	__HAL_RCC_USB_OTG_FS_CLK_ENABLE();
+
+	/* Peripheral interrupt init */
+	HAL_NVIC_SetPriority(OTG_FS_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+  /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
+
+  /* USER CODE END USB_OTG_FS_MspInit 1 */
   }
 }
 
 void HAL_PCD_MspDeInit(PCD_HandleTypeDef* hpcd)
 {
-  if(hpcd->Instance==USB)
+  if(hpcd->Instance==USB_OTG_FS)
   {
-  /* USER CODE BEGIN USB_MspDeInit 0 */
+  /* USER CODE BEGIN USB_OTG_FS_MspDeInit 0 */
 
-  /* USER CODE END USB_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __USB_CLK_DISABLE();
+  /* USER CODE END USB_OTG_FS_MspDeInit 0 */
+	/* Peripheral clock disable */
+	__HAL_RCC_USB_OTG_FS_CLK_DISABLE();
 
-    /* Peripheral interrupt Deinit*/
-    HAL_NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+	/**USB_OTG_FS GPIO Configuration
+	PA8     ------> USB_OTG_FS_SOF
+	PA9     ------> USB_OTG_FS_VBUS
+	PA10     ------> USB_OTG_FS_ID
+	PA11     ------> USB_OTG_FS_DM
+	PA12     ------> USB_OTG_FS_DP
+	*/
+	HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8|VBUS_FS_Pin|OTG_FS_ID_Pin|OTG_FS_DM_Pin
+						  |OTG_FS_DP_Pin);
 
-  /* USER CODE BEGIN USB_MspDeInit 1 */
+	/* Peripheral interrupt Deinit*/
+	HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
 
-  /* USER CODE END USB_MspDeInit 1 */
+  /* USER CODE BEGIN USB_OTG_FS_MspDeInit 1 */
+
+  /* USER CODE END USB_OTG_FS_MspDeInit 1 */
   }
 }
 
@@ -251,7 +282,7 @@ USBD_StatusTypeDef  USBD_LL_Init (USBD_HandleTypeDef *pdev)
 {
   /* Init USB_IP */
   /* Link The driver to the stack */
-  hpcd_USB_FS.pData = pdev;
+/*  hpcd_USB_FS.pData = pdev;
   pdev->pData = &hpcd_USB_FS;
 
   hpcd_USB_FS.Instance = USB;
@@ -263,11 +294,30 @@ USBD_StatusTypeDef  USBD_LL_Init (USBD_HandleTypeDef *pdev)
   hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
   HAL_PCD_Init(&hpcd_USB_FS);
 
-  HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_CONTROL_OUT_EP        , PCD_SNG_BUF, RNDIS_CONTROL_OUT_PMAADDRESS);
-  HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_CONTROL_IN_EP         , PCD_SNG_BUF, RNDIS_CONTROL_IN_PMAADDRESS);
-  HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_NOTIFICATION_IN_EP    , PCD_SNG_BUF, RNDIS_NOTIFICATION_IN_PMAADDRESS);
-  HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_DATA_OUT_EP           , PCD_SNG_BUF, RNDIS_DATA_OUT_PMAADDRESS);
-  HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_DATA_IN_EP            , PCD_SNG_BUF, RNDIS_DATA_IN_PMAADDRESS);
+  //HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_CONTROL_OUT_EP        , PCD_SNG_BUF, RNDIS_CONTROL_OUT_PMAADDRESS);
+  //HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_CONTROL_IN_EP         , PCD_SNG_BUF, RNDIS_CONTROL_IN_PMAADDRESS);
+  //HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_NOTIFICATION_IN_EP    , PCD_SNG_BUF, RNDIS_NOTIFICATION_IN_PMAADDRESS);
+  //HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_DATA_OUT_EP           , PCD_SNG_BUF, RNDIS_DATA_OUT_PMAADDRESS);
+  //HAL_PCDEx_PMAConfig(pdev->pData , RNDIS_DATA_IN_EP            , PCD_SNG_BUF, RNDIS_DATA_IN_PMAADDRESS);
+  return USBD_OK;*/
+	  /* Init USB_IP */
+  //if (pdev->id == DEVICE_FS) {
+  /* Link The driver to the stack */
+  hpcd_USB_FS.pData = pdev;
+  pdev->pData = &hpcd_USB_FS;
+
+  hpcd_USB_FS.Instance = USB_OTG_FS;
+  hpcd_USB_FS.Init.dev_endpoints = 8;
+  hpcd_USB_FS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_FS.Init.ep0_mps = DEP0CTL_MPS_8;
+  hpcd_USB_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+  HAL_PCD_Init(&hpcd_USB_FS);
+
+  //HAL_PCDEx_SetRxFiFo(&hpcd_USB_FS, 0x80);
+  //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 0, 0x40);
+  //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 1, 0x80);
   return USBD_OK;
 }
 

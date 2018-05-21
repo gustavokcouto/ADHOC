@@ -121,13 +121,13 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
   18,                                 // bLength = 18 bytes.
   USB_DESC_TYPE_DEVICE,               // bDescriptorType = DEVICE
   0x00, 0x02,                         // bcdUSB          = 1.1 0x10,0x01  2.0 0x00,0x02
-  0x02,                               // bDeviceClass    = Communication Device Class
+  0xE0,                               // bDeviceClass    = Communication Device Class
   0x00,                               // bDeviceSubClass = Unused at this time.
   0x00,                               // bDeviceProtocol = Unused at this time.
   USB_MAX_EP0_SIZE,                   // bMaxPacketSize0 = EP0 buffer size..
   LOBYTE(USBD_VID), HIBYTE(USBD_VID), // Vendor ID
   LOBYTE(USBD_PID), HIBYTE(USBD_PID), // Product ID
-  0x01, 0x00,                         // bcdDevice       = 0.1
+  0xFF, 0xFF,                         // bcdDevice       = 0.1
   USBD_IDX_MFC_STR,
   USBD_IDX_PRODUCT_STR,
   USBD_IDX_SERIAL_STR,

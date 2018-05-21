@@ -8,11 +8,11 @@
 /* Private variables ---------------------------------------------------------*/
 cpu_LoadCounterTypeDef cpuLoad;
 
-SD_HandleTypeDef hsd;
+//SD_HandleTypeDef hsd;
 
 /* External variables --------------------------------------------------------*/
-DMA_HandleTypeDef hdma_sdio;
-HAL_SD_CardInfoTypedef SDCardInfo;
+//DMA_HandleTypeDef hdma_sdio;
+//HAL_SD_CardInfoTypedef SDCardInfo;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -36,97 +36,98 @@ void init_periph(void)
   USB_DEVICE_Init();
 
   /* USB_DISCONNECT */
-  HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_RESET);
+  //HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_RESET);
 
   time_init();
 }
 
-/* System Clock Configuration */
+
+/** System Clock Configuration
+*/
 void SystemClock_Config(void)
 {
-
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	/**Configure the main internal regulator output voltage
+	*/
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+	/**Initializes the CPU, AHB and APB busses clocks
+	*/
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+  }
 
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	/**Initializes the CPU, AHB and APB busses clocks
+	*/
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+							  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-  PeriphClkInit.UsbClockSelection = RCC_USBPLLCLK_DIV1_5;
-  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+  }
 }
 
 void SysTick_Init(void)
 {
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+
+  /**Configure the Systick
+  */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, SYSTICK_PREEMPT_PRIORITY, 0);
-}
-
-/* Configure pins */
-void GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct;
-
-  /* GPIO Ports Clock Enable */
-  __GPIOA_CLK_ENABLE();
-  __GPIOB_CLK_ENABLE();
-  __GPIOC_CLK_ENABLE();
-  __GPIOD_CLK_ENABLE();
-
-  GPIO_InitStruct.Pin = USB_DISCONNECT_PIN;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(USB_DISCONNECT_PORT, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 /* SDIO init function */
 void SDIO_SD_Init(void)
 {
-  /* DMA controller clock enable */
-  __SDIODMA_CLK_ENABLE();
+}
 
-  /* DMA interrupt init */
-  HAL_NVIC_SetPriority(SDIODMA_Channel_IRQn, SDIODMA_PREEMPT_PRIORITY, 0);
-  HAL_NVIC_EnableIRQ(SDIODMA_Channel_IRQn);
+/** Configure pins as
+        * Analog
+        * Input
+        * Output
+        * EVENT_OUT
+        * EXTI
+     PC3   ------> I2S2_SD
+     PA4   ------> I2S3_WS
+     PA5   ------> SPI1_SCK
+     PA6   ------> SPI1_MISO
+     PA7   ------> SPI1_MOSI
+     PB10   ------> I2S2_CK
+     PB12   ------> I2S2_WS
+     PC7   ------> I2S3_MCK
+     PC10   ------> I2S3_CK
+     PC12   ------> I2S3_SD
+     PB6   ------> I2C1_SCL
+     PB9   ------> I2C1_SDA
+*/
+void GPIO_Init(void)
+{
 
-  hsd.Instance = SDIO;
-  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = SDIO_TRANSFER_CLK_DIV;
+	/* GPIO Ports Clock Enable */
+	  __HAL_RCC_GPIOH_CLK_ENABLE();
+	  __HAL_RCC_GPIOA_CLK_ENABLE();
 
-  /* SDIO interrupt init */
-  HAL_NVIC_SetPriority(SDIO_IRQn, SDIO_PREEMPT_PRIORITY, 0);
-  HAL_NVIC_EnableIRQ(SDIO_IRQn);
 }
 
 uint32_t sys_now()

@@ -143,15 +143,26 @@ __ALIGN_BEGIN static uint8_t usbd_rndis_CfgDesc[RNDIS_TOTAL_CONFIG_DESC_SIZE]  _
   0x64,                                 /* bMaxPower = 100 mA*/
   /* 09 byte*/
 
+  /* IAD descriptor */
+
+  0x08, /* bLength */
+  0x0B, /* bDescriptorType */
+  0x00, /* bFirstInterface */
+  0x02, /* bInterfaceCount */
+  0xE0, /* bFunctionClass (Wireless Controller) */
+  0x01, /* bFunctionSubClass */
+  0x03, /* bFunctionProtocol */
+  0x00, /* iFunction */
+
   //  Communication Class INTERFACE descriptor          https://msdn.microsoft.com/en-US/library/ee485851(v=winembedded.60).aspx
   RNDIS_INTERFACE_DESC_SIZE,            /* bLength */
   USB_DESC_TYPE_INTERFACE,              /* bDescriptorType */
   0x00,                                 /* bInterfaceNumber */
   0x00,                                 /* bAlternateSetting */
   0x01,                                 /* bNumEndpoints */
-  USB_DEVICE_CLASS_RNDIS,               /* bInterfaceClass */
-  RNDIS_SUBCLASS,                       /* bInterfaceSubClass */
-  RNDIS_PROTOCOL_UNDEFINED,             /* bInterfaceProtocol */
+  0xE0,               /* bInterfaceClass */
+  0x01,                       /* bInterfaceSubClass */
+  0x03,             /* bInterfaceProtocol */
   0x00,                                 /* iInterface */
   /* 09 byte*/
 
