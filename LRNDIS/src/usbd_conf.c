@@ -315,6 +315,17 @@ USBD_StatusTypeDef  USBD_LL_Init (USBD_HandleTypeDef *pdev)
   hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
   HAL_PCD_Init(&hpcd_USB_FS);
 
+
+  HAL_PCDEx_SetRxFiFo(&hpcd_USB_FS, 0x80);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 0, 0x40);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 1, 0x08);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 2, 0x40);
+
+  //HAL_PCDEx_SetRxFiFo(&hpcd_USB_FS, 0x40);
+  //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 0, 0x20); // EP0 IN
+  //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 1, 0x20); // CDC CMD
+  //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 2, 0x40); // CDC IN
+
   //HAL_PCDEx_SetRxFiFo(&hpcd_USB_FS, 0x80);
   //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 0, 0x40);
   //HAL_PCDEx_SetTxFiFo(&hpcd_USB_FS, 1, 0x80);
